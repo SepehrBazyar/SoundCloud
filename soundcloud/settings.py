@@ -31,7 +31,11 @@ ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
-LOCAL_APPS = []
+LOCAL_APPS = [
+    "core.apps.CoreConfig",
+    "persons.apps.PersonsConfig",
+    "contents.apps.ContentsConfig",
+]
 
 THIRD_PARTY_APPS = [
     "debug_toolbar",
