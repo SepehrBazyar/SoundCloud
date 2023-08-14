@@ -2,6 +2,7 @@ from uuid import uuid4
 from django.db import models
 from .manager import CustomManager
 
+
 # Create your models here.
 class AbstractBaseModel(models.Model):
     id = models.UUIDField(editable=False, primary_key=True, default=uuid4)
