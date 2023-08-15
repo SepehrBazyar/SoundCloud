@@ -28,13 +28,11 @@ jobs:
         pip install -r requirements/development.txt
     - name: Linting & Code Formatting
       run: pre-commit run --all-files
-    - name: Make Migrations
+    - name: Make Migrations & Run Tests
       env:
         DEBUG: True
         SECRET_KEY: django-insecure-jzfxvvwsh^p+fn4eqth#x2!o7=2o7=e+-@0p0^v_+h*@@3iu2y
       run: |
         python manage.py makemigrations
         python manage.py migrate
-    - name: Run Tests
-      run: |
         python manage.py test
