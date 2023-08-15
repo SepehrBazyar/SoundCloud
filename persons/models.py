@@ -7,8 +7,8 @@ from core.models import AbstractBaseModel
 # Create your models here.
 class Person(AbstractUser):
     class Meta:
-        verbose_name = _("User")
-        verbose_name_plural = _("Users")
+        verbose_name = _("Person")
+        verbose_name_plural = _("Persons")
 
 
 class Fan(Person):
