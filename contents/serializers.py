@@ -1,14 +1,22 @@
+import time
 from rest_framework import serializers
 from persons.serializers import ArtistSerializer
 from .models import Album, Track
 
 
 class AlbumBriefSerializer(serializers.ModelSerializer):
+    duration = serializers.SerializerMethodField()
     artist = ArtistSerializer()
 
     class Meta:
         model = Album
-        fields = ("id", "name", "rating", "artist")
+        fields = ("id", "name", "rating", "duration", "artist")
+
+    def get_duration(self, obj):
+        if obj.duration is None:
+            return None
+
+        return time.strftime("%M:%S", time.gmtime(obj.duration))
 
     def validate_rating(self, value: int):
         """Validate the rating value for a given value
@@ -21,6 +29,13 @@ class AlbumBriefSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid Rate Between 1 and 10")
 
         return value
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.duration is not None:
+            representation["album_type"] = "EP" if instance.duration <= 200 else "LP"
+
+        return representation
 
 
 class AlbumDetailSerializer(serializers.ModelSerializer):

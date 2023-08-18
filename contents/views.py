@@ -1,5 +1,6 @@
 from uuid import UUID
 from datetime import date
+from django.db.models import Sum
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.request import Request
@@ -16,7 +17,11 @@ class AlbumListAPIView(APIView):
     serializer_class = AlbumBriefSerializer
 
     def get(self, request: Request):
-        albums = Album.objects.filter(**request.query_params.dict()).all()
+        albums = (
+            Album.objects.filter(**request.query_params.dict())
+            .annotate(duration=Sum("tracks__duration"))
+            .all()
+        )
         serializer = self.serializer_class(instance=albums, many=True)
         return Response(
             data=serializer.data,
