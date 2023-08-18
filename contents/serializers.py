@@ -1,11 +1,15 @@
 from rest_framework import serializers
+from persons.serializers import ArtistSerializer
 from .models import Album, Track
 
 
 class AlbumBriefSerializer(serializers.ModelSerializer):
+
+    artist = ArtistSerializer()
+
     class Meta:
         model = Album
-        fields = ("id", "name", "rating")
+        fields = ("id", "name", "rating", "artist")
 
     def validate_rating(self, value: int):
         """Validate the rating value for a given value
@@ -22,12 +26,7 @@ class AlbumBriefSerializer(serializers.ModelSerializer):
 
 class AlbumDetailSerializer(serializers.ModelSerializer):
 
-    tracks = serializers.HyperlinkedRelatedField(
-        view_name="contents:track-detail",
-        lookup_field="pk",
-        read_only=True,
-        many=True,
-    )
+    tracks = serializers.StringRelatedField(read_only=True, many=True)
     releaseDate = serializers.DateField(read_only=True, source="release_date")
     present = serializers.CharField(read_only=True, source="show")
 

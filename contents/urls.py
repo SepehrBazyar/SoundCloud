@@ -9,6 +9,6 @@ from .views import (
 app_name = "contents"
 urlpatterns = [
     path("albums/", AlbumListAPIView.as_view(), name="album-list"),
-    path("albums/<uuid:pk>/", AlbumDetailAPIView.as_view(), name="album-detail"),
-    path("tracks/<uuid:pk>/", TrackDetailAPIView.as_view(), name="track-detail"),
+    path("albums/<uuid:id>/", AlbumDetailAPIView.as_view(), name="album-detail"),
+    path("tracks/<uuid:id>/", TrackDetailAPIView.as_view(), name="track-detail"),
 ]
