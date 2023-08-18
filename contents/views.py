@@ -1,7 +1,6 @@
 from uuid import UUID
 from datetime import date
 from rest_framework import status
-from rest_framework import exceptions
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -58,7 +57,8 @@ class AlbumDetailAPIView(APIView):
 
     def get(self, request: Request, id: UUID):
         serializer = self.serializer_class(
-            instance=self.album, context={
+            instance=self.album,
+            context={
                 "request": request,
             },
         )
@@ -115,9 +115,11 @@ class TrackDetailAPIView(APIView):
 
     def setup(self, request: Request, id: UUID):
         try:
-            self.track: Track = Track.objects.select_related("album").select_related(
-                "album__artist"
-            ).get(id=id)
+            self.track: Track = (
+                Track.objects.select_related("album")
+                .select_related("album__artist")
+                .get(id=id)
+            )
         except Track.DoesNotExist:
             return Response(
                 data={"detail": "Track not found"},

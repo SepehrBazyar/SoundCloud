@@ -4,7 +4,6 @@ from .models import Album, Track
 
 
 class AlbumBriefSerializer(serializers.ModelSerializer):
-
     artist = ArtistSerializer()
 
     class Meta:
@@ -25,7 +24,6 @@ class AlbumBriefSerializer(serializers.ModelSerializer):
 
 
 class AlbumDetailSerializer(serializers.ModelSerializer):
-
     tracks = serializers.StringRelatedField(read_only=True, many=True)
     releaseDate = serializers.DateField(read_only=True, source="release_date")
     present = serializers.CharField(read_only=True, source="show")
@@ -45,7 +43,6 @@ class AlbumDetailSerializer(serializers.ModelSerializer):
 
 
 class TrackDetailSerializer(serializers.ModelSerializer):
-
     album = AlbumBriefSerializer()
 
     class Meta:
