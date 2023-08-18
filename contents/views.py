@@ -5,10 +5,11 @@ from rest_framework import exceptions
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
-from .models import Album
+from .models import Album, Track
 from .serializers import (
     AlbumBriefSerializer,
     AlbumDetailSerializer,
+    TrackDetailSerializer,
 )
 
 
@@ -25,7 +26,7 @@ class AlbumListAPIView(APIView):
 
     def post(self, request: Request):
         serializer = self.serializer_class(data=request.data)
-        if not serializer.is_valid():
+        if not serializer.is_valpk():
             return Response(
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
@@ -44,27 +45,34 @@ class AlbumListAPIView(APIView):
 class AlbumDetailAPIView(APIView):
     serializer_class = AlbumDetailSerializer
 
-    def setup(self, request: Request, id: UUID):
+    def setup(self, request: Request, pk: UUID):
         try:
-            self.album: Album = Album.objects.get(id=id)
+            self.album: Album = Album.objects.get(pk=pk)
         except Album.DoesNotExist:
-            raise exceptions.NotFound(detail="Album Not Found")
+            return Response(
+                data={"detail": "Album not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        return super().setup(request, id)
+        return super().setup(request, pk)
 
-    def get(self, request: Request, id: UUID):
-        serializer = self.serializer_class(instance=self.album)
+    def get(self, request: Request, pk: UUID):
+        serializer = self.serializer_class(
+            instance=self.album, context={
+                "request": request,
+            },
+        )
         return Response(
             data=serializer.data,
             status=status.HTTP_200_OK,
         )
 
-    def put(self, request: Request, id: UUID):
+    def put(self, request: Request, pk: UUID):
         serializer = self.serializer_class(
             instance=self.album,
             data=request.data,
         )
-        if not serializer.is_valid():
+        if not serializer.is_valpk():
             return Response(
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
@@ -76,13 +84,13 @@ class AlbumDetailAPIView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def patch(self, request: Request, id: UUID):
+    def patch(self, request: Request, pk: UUID):
         serializer = self.serializer_class(
             instance=self.album,
             data=request.data,
             partial=True,
         )
-        if not serializer.is_valid():
+        if not serializer.is_valpk():
             return Response(
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
@@ -94,9 +102,31 @@ class AlbumDetailAPIView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def delete(self, request: Request, id: UUID):
+    def delete(self, request: Request, pk: UUID):
         self.album.delete()
         return Response(
             data={"message": "Album Deleted"},
+            status=status.HTTP_200_OK,
+        )
+
+
+class TrackDetailAPIView(APIView):
+    serializer_class = TrackDetailSerializer
+
+    def setup(self, request: Request, pk: UUID):
+        try:
+            self.track: Track = Track.objects.select_related("album").get(pk=pk)
+        except Track.DoesNotExist:
+            return Response(
+                data={"detail": "Track not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return super().setup(request, pk)
+
+    def get(self, request: Request, pk: UUID):
+        serializer = self.serializer_class(instance=self.track)
+        return Response(
+            data=serializer.data,
             status=status.HTTP_200_OK,
         )

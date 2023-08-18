@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Album
+from .models import Album, Track
 
 
 class AlbumBriefSerializer(serializers.ModelSerializer):
@@ -21,6 +21,34 @@ class AlbumBriefSerializer(serializers.ModelSerializer):
 
 
 class AlbumDetailSerializer(serializers.ModelSerializer):
+
+    tracks = serializers.HyperlinkedRelatedField(
+        view_name="contents:track-detail",
+        lookup_field="pk",
+        read_only=True,
+        many=True,
+    )
+    releaseDate = serializers.DateField(read_only=True, source="release_date")
+    present = serializers.CharField(read_only=True, source="show")
+
     class Meta:
         model = Album
-        fields = ("name", "rating", "release_date", "tracks")
+        fields = ("name", "rating", "releaseDate", "tracks", "present")
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["count"] = instance.tracks.count()
+        return representation
+
+    # def to_internal_value(self, data):
+    #     temp = super().to_internal_value(data)
+    #     return temp["data"]
+
+
+class TrackDetailSerializer(serializers.ModelSerializer):
+
+    album = AlbumBriefSerializer()
+
+    class Meta:
+        model = Track
+        fields = ("id", "title", "duration", "album")

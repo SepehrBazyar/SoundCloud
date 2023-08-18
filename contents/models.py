@@ -13,6 +13,9 @@ class Album(BaseModel):
         related_name="albums",
     )
 
+    def show(self):
+        return f"{self.name} ({self.release_date.year})"
+
     def __str__(self):
         return f"{self.name} ({self.release_date.year})"
 
