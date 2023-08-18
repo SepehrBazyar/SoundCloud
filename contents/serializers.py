@@ -3,7 +3,6 @@ from .models import Album
 
 
 class AlbumBriefSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Album
         fields = ("id", "name", "rating")
@@ -22,7 +21,6 @@ class AlbumBriefSerializer(serializers.ModelSerializer):
 
 
 class AlbumDetailSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Album
         fields = ("name", "rating", "release_date", "tracks")
