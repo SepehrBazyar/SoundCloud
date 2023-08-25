@@ -5,12 +5,12 @@ from .models import Album, Track
 
 
 class AlbumBriefSerializer(serializers.ModelSerializer):
-    duration = serializers.SerializerMethodField()
+    # duration = serializers.SerializerMethodField()
     artist = ArtistSerializer()
 
     class Meta:
         model = Album
-        fields = ("id", "name", "rating", "duration", "artist")
+        fields = ("id", "name", "rating", "artist")
 
     def get_duration(self, obj):
         if obj.duration is None:
@@ -30,12 +30,12 @@ class AlbumBriefSerializer(serializers.ModelSerializer):
 
         return value
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.duration is not None:
-            representation["album_type"] = "EP" if instance.duration <= 200 else "LP"
+    # def to_representation(self, instance):
+    #     representation = super().to_representation(instance)
+    #     if instance.duration is not None:
+    #         representation["album_type"] = "EP" if instance.duration <= 200 else "LP"
 
-        return representation
+    #     return representation
 
 
 class AlbumDetailSerializer(serializers.ModelSerializer):

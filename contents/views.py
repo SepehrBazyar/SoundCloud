@@ -1,12 +1,13 @@
-from uuid import UUID
 from datetime import date
 from django.db.models import Sum
-from rest_framework import status
+from rest_framework import status, generics, viewsets
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from core.permissions import IsOwnerOrReadOnlyPermission
+from core.paginations import CustomPagination
 from .models import Album, Track
 from .serializers import (
     AlbumBriefSerializer,
@@ -17,9 +18,10 @@ from .serializers import (
 
 class AlbumListAPIView(APIView):
     serializer_class = AlbumBriefSerializer
-    permission_classes = [~IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def get(self, request: Request):
+        """Get a list of albums"""
         print(request.user)
         albums = (
             Album.objects.filter(**request.query_params.dict())
@@ -50,103 +52,31 @@ class AlbumListAPIView(APIView):
         )
 
 
-class AlbumDetailAPIView(APIView):
+class AlbumDetailAPIView(
+    generics.RetrieveUpdateDestroyAPIView,
+):
+    lookup_field = "id"
+    queryset = Album.objects.all()
     serializer_class = AlbumDetailSerializer
     permission_classes = [IsOwnerOrReadOnlyPermission]
 
-    def setup(self, request: Request, id: UUID):
-        try:
-            self.album: Album = Album.objects.get(id=id)
-        except Album.DoesNotExist:
-            return Response(
-                data={"detail": "Album not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
-        return super().setup(request, id)
+class TrackAPIView(viewsets.ModelViewSet):
+    lookup_field = "id"
+    lookup_url_kwarg = "id"
+    pagination_class = CustomPagination
+    queryset = Track.objects.select_related("album").all()
 
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # def get_queryset(self):
+    #     return super().get_queryset().filter(**self.request.query_params.dict())
 
-    def get(self, request: Request, id: UUID):
-        serializer = self.serializer_class(
-            instance=self.album,
-            context={
-                "request": request,
-            },
-        )
+    @action(["POST"], detail=True, url_path="create")
+    def delete_all(self, request, *args, **kwargs):
+        print(args)
+        print(kwargs)
         return Response(
-            data=serializer.data,
-            status=status.HTTP_200_OK,
+            data={"status": "ok"},
         )
 
-    def put(self, request: Request, id: UUID):
-        print(request.user)
-        print(self.album.artist)
-        self.check_object_permissions(request, self.album)
-        serializer = self.serializer_class(
-            instance=self.album,
-            data=request.data,
-        )
-        if not serializer.is_valid():
-            return Response(
-                data=serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        serializer.save()
-        return Response(
-            data=serializer.data,
-            status=status.HTTP_200_OK,
-        )
-
-    def patch(self, request: Request, id: UUID):
-        serializer = self.serializer_class(
-            instance=self.album,
-            data=request.data,
-            partial=True,
-        )
-        if not serializer.is_valid():
-            return Response(
-                data=serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        serializer.save()
-        return Response(
-            data=serializer.data,
-            status=status.HTTP_200_OK,
-        )
-
-    def delete(self, request: Request, id: UUID):
-        self.album.delete()
-        return Response(
-            data={"message": "Album Deleted"},
-            status=status.HTTP_200_OK,
-        )
-
-
-class TrackDetailAPIView(APIView):
-    serializer_class = TrackDetailSerializer
-
-    def setup(self, request: Request, id: UUID):
-        try:
-            self.track: Track = (
-                Track.objects.select_related("album")
-                .select_related("album__artist")
-                .get(id=id)
-            )
-        except Track.DoesNotExist:
-            return Response(
-                data={"detail": "Track not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        return super().setup(request, id)
-
-    def get(self, request: Request, id: UUID):
-        serializer = self.serializer_class(instance=self.track)
-        return Response(
-            data=serializer.data,
-            status=status.HTTP_200_OK,
-        )
+    def get_serializer_class(self):
+        return TrackDetailSerializer
