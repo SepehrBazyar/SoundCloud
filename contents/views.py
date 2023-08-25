@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
+from core.permissions import IsOwnerOrReadOnlyPermission
 from .models import Album, Track
 from .serializers import (
     AlbumBriefSerializer,
@@ -15,8 +17,10 @@ from .serializers import (
 
 class AlbumListAPIView(APIView):
     serializer_class = AlbumBriefSerializer
+    permission_classes = [~IsAdminUser]
 
     def get(self, request: Request):
+        print(request.user)
         albums = (
             Album.objects.filter(**request.query_params.dict())
             .annotate(duration=Sum("tracks__duration"))
@@ -48,6 +52,7 @@ class AlbumListAPIView(APIView):
 
 class AlbumDetailAPIView(APIView):
     serializer_class = AlbumDetailSerializer
+    permission_classes = [IsOwnerOrReadOnlyPermission]
 
     def setup(self, request: Request, id: UUID):
         try:
@@ -59,6 +64,9 @@ class AlbumDetailAPIView(APIView):
             )
 
         return super().setup(request, id)
+
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: Request, id: UUID):
         serializer = self.serializer_class(
@@ -73,6 +81,9 @@ class AlbumDetailAPIView(APIView):
         )
 
     def put(self, request: Request, id: UUID):
+        print(request.user)
+        print(self.album.artist)
+        self.check_object_permissions(request, self.album)
         serializer = self.serializer_class(
             instance=self.album,
             data=request.data,

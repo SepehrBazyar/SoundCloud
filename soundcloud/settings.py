@@ -40,6 +40,7 @@ LOCAL_APPS = [
 THIRD_PARTY_APPS = [
     "debug_toolbar",
     "rest_framework",
+    "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "drf_spectacular",
 ]
@@ -144,3 +145,17 @@ AUTH_USER_MODEL = "persons.Person"
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "2/minute",
+        "user": "3/minute",
+    },
+}
